@@ -24,6 +24,3 @@ class Controller:
 
         if not self.playlist[1][:-1].isdigit():
             raise ValueError("Missing number of first file to start from")
-
-# controller = Controller("play_list.pls")
-# controller.run()
