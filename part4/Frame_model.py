@@ -6,5 +6,3 @@ class Frame_model:
         self.index = index
         self.tfl_lights = []
         self.container = FrameContainer(frame)
-
-    # def add_tfl_light(self,li):
