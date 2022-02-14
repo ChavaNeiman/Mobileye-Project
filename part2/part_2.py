@@ -13,20 +13,78 @@ def read_file(filename):
         return labels
 
 
-def classify_pixels(labels):
-    try:
-        traffic_lights = list(filter(lambda label: label['label'] == 'traffic light', labels))[0]['polygon']
-    except:
-        traffic_lights = []
-    non_traffic_lights = n_random_pixels(labels, len(traffic_lights))
-    return traffic_lights, non_traffic_lights
-
-
 def n_random_pixels(labels, n):
-    random_labels = list(filter(lambda label: label['label'] != 'traffic light', labels))
+    random_labels = list(filter(lambda label: ['label'] != 'traffic light', labels))
     all_random_pixels = np.concatenate([l['polygon'] for l in random_labels])
     random_indices = np.random.choice(len(all_random_pixels), n, replace=False)
     return all_random_pixels[random_indices]
+
+
+def find_center(polygon):
+    return [x_center(polygon), y_center(polygon)]
+
+
+def is_inside(x, y, polygon):
+    left_up = False
+    left_down = False
+    right_up = False
+    right_down = False
+    for pix in polygon:
+        if pix[0] <= x and pix[1] >= y:
+            left_up = True
+        if pix[0] <= x and pix[1] <= y:
+            left_down = True
+        if pix[0] >= x and pix[1] >= y:
+            right_up = True
+        if pix[0] >= x and pix[1] <= y:
+            right_down = True
+    return left_down and left_up and right_down and right_up
+
+
+def n_lights(image, image_color, traffic_lights, n):
+    res = []
+    red_x, red_y, green_x, green_y = find_tfl_lights(image, colored_image=image_color, some_threshold=42)
+    x_pixels = red_x + green_x
+    y_pixels = red_y + green_y
+    for i in range(len(x_pixels)):
+        is_pix_inside = False
+        for polygon in traffic_lights:
+            if is_inside(x_pixels[i], y_pixels[i], polygon):
+                is_pix_inside = True
+        if not is_pix_inside:
+            res.append([x_pixels[i], y_pixels[i]])
+    return res[:n]
+
+
+def x_center(polygon):
+    min_x = min(list(map(lambda p: p[0], polygon)))
+    max_x = max(list(map(lambda p: p[0], polygon)))
+    return min_x + (max_x - min_x) // 2
+
+
+def y_center(polygon):
+    min_y = min(list(map(lambda p: p[1], polygon)))
+    max_y = max(list(map(lambda p: p[1], polygon)))
+    return min_y + (max_y - min_y) // 2
+
+
+def parse_image(image_path):
+    image_color = Image.open(image_path)
+    image_gray = image_color.convert('L')
+    image = np.array(image_gray) / 255
+
+    image_color = np.array(image_color) / 255
+    return image, image_color
+
+
+def classify_pixels(image_path, labels):
+    traffic_lights = list(filter(lambda label: label['label'] == 'traffic light', labels))
+    polygons = list(map(lambda t: t['polygon'], traffic_lights))
+    traffic_lights = list(map(find_center, polygons))
+    image, image_color = parse_image(image_path)
+    lights = n_lights(image, image_color, polygons, len(traffic_lights) // 2)
+    non_traffic_lights = n_random_pixels(labels, len(traffic_lights) - len(lights))
+    return traffic_lights, non_traffic_lights
 
 
 def deal_with_edge_cases(center_index, image, size=81):
