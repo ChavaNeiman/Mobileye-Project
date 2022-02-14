@@ -71,35 +71,6 @@ def decompose(EM):
     return R, foe, tZ
 
 
-# def rotate(pts, R):
-#     # rotate the points - pts using R
-#     return [np.matmul(R, np.append(point, 1)) for point in pts]
-#
-#
-# def find_corresponding_points(p, norm_pts_rot, foe):
-#     # compute the epipolar line between p and foe
-#     # run over all norm_pts_rot and find the one closest to the epipolar line
-#     # return the closest point and its index
-#     m = (foe[1] - p[1]) / (foe[0] - p[0])
-#     n = (p[1] * foe[0] - foe[1] * p[0]) / (foe[0] - p[0])
-#     min_d, min_idx = float('inf'), -1
-#     for index, point in enumerate(norm_pts_rot):
-#         distance = abs((m * point[0] + n - point[1]) / sqrt(m ** 2 + 1))
-#         if min_d > distance:
-#             min_d, min_idx = distance, index
-#     return min_idx, norm_pts_rot[min_idx]
-#
-#
-# def calc_dist(p_curr, p_rot, foe, tZ):
-#     # calculate the distance of p_curr using x_curr, x_rot, foe_x and tZ
-#     # calculate the distance of p_curr using y_curr, y_rot, foe_y and tZ
-#     # combine the two estimations and return estimated Z
-#     x = tZ * (foe[0] - p_rot[0]) / (p_curr[0] - p_rot[0])
-#     y = tZ * (foe[1] - p_rot[1]) / (p_curr[1] - p_rot[1])
-#     x_dist = abs(p_curr[0] - p_rot[0])
-#     y_dist = abs(p_curr[1] - p_rot[1])
-#     return (abs(1 - x) * x_dist + abs(1 - y) * y_dist) / (x_dist + y_dist)
-
 def rot(R, pt):
     return np.dot(R, np.array([pt[0], pt[1], 1]))
 
@@ -112,6 +83,7 @@ def rotate(pts, R):
             arr_returned[i].append([res[0] / res[2], res[1] / res[2]])
     return arr_returned
 
+
 def find_corresponding_points(p, norm_pts_rot, foe):
     # compute the epipolar line between p and foe
     # run over all norm_pts_rot and find the one closest to the epipolar line
@@ -120,6 +92,7 @@ def find_corresponding_points(p, norm_pts_rot, foe):
     n = (p[1] * foe[0] - foe[1] * p[0]) / (foe[0] - p[0])
     distances = np.array([abs((m * pt[0] + n - pt[1]) / sqrt((m**2) + 1)) for pt in norm_pts_rot])
     return np.argmin(distances), norm_pts_rot[np.argmin(distances)]
+
 
 def calc_dist(p_curr, p_rot, foe, tZ):
     # calculate the distance of p_curr using x_curr, x_rot, foe_x and tZ
